@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --deep-canvas:     #0D0D2B;
+  --night-indigo:    #1B2A6B;
+  --cobalt-swirl:    #2E4A9E;
+  --gold-star:       #C9A84C;
+  --warm-glow:       #F5E6A3;
+  --violet-star:     #7B4FBF;
+  --aurora-teal:     #3ABFBF;
+  --blush-accent:    #E8B4D8;
+  --starlight-white: #FAFAFA;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--deep-canvas);
+  overflow-x: hidden;
+  cursor: auto;
+}
+
+/* Pointer cursor inside buttons / links for UX clarity */
+button, a, [role="button"] {
+  cursor: pointer;
+}
+
+@layer utilities {
+  /* Slow-moving radial gradients evoke Van Gogh brushwork layers */
+  .van-gogh-swirl {
+    background-image:
+      radial-gradient(ellipse at 15% 40%, rgba(46, 74, 158, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 15%, rgba(27, 42, 107, 0.22) 0%, transparent 50%),
+      radial-gradient(ellipse at 55% 85%, rgba(201, 168, 76, 0.05) 0%, transparent 45%),
+      radial-gradient(ellipse at 30% 70%, rgba(232, 180, 216, 0.04) 0%, transparent 40%);
+  }
+
+  /* Oil-paint shimmer — applied to star dots for a textured glow */
+  .star-shimmer {
+    filter: drop-shadow(0 0 4px #C9A84C) drop-shadow(0 0 10px rgba(245, 230, 163, 0.5));
+  }
+
+  /* Stronger glow for hero / focal stars */
+  .star-shimmer-lg {
+    filter: drop-shadow(0 0 8px #C9A84C) drop-shadow(0 0 20px #F5E6A3) drop-shadow(0 0 40px rgba(201, 168, 76, 0.4));
+  }
+
+  /* Typewriter cursor blink */
+  .cursor-blink::after {
+    content: '|';
+    animation: blink 1s step-end infinite;
+    color: var(--warm-glow);
+    margin-left: 2px;
+  }
+
+  /* Ambient sky breathing — used on intro background layers */
+  .sky-breathe {
+    animation: skyBreathe 8s ease-in-out infinite;
+  }
+
+  /* Constellation node glow pulse */
+  .node-glow {
+    filter: drop-shadow(0 0 3px #C9A84C) drop-shadow(0 0 8px rgba(201, 168, 76, 0.5));
+  }
+
+  /* Shooting star glow trail */
+  .meteor-glow {
+    filter: drop-shadow(0 0 3px #F5E6A3) drop-shadow(0 0 8px rgba(201, 168, 76, 0.6));
+  }
+}
+
+/* ── Keyframes ─────────────────────────────────────────────────────────────── */
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* Slow ambient breathing for the intro background gradient layers */
+@keyframes skyBreathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+/* Hero star twinkle — used as fallback CSS animation */
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  40%       { opacity: 1;   transform: scale(1.25); }
+  60%       { opacity: 0.8; transform: scale(1.1); }
+}
