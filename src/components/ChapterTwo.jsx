@@ -321,7 +321,7 @@ function SunSphere({ meshRef, radius, fadeOut }) {
 
 // ── Three.js: Violet (Neptune) sphere — fades in at right position ────────────
 function VioletSphere({ meshRef, radius, fadeOut }) {
-  const tex          = useTexture('/photos/neptune_saturn.jpg')
+  const tex          = useTexture(import.meta.env.BASE_URL + 'photos/neptune_saturn.jpg')
   const matRef       = useRef()
   const startRef     = useRef(null)
   const fadeOutStart = useRef(null)
