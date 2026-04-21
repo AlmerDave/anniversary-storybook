@@ -281,7 +281,7 @@ function useStarPositions(phase, spread) {
 
 // ── Three.js: Sun sphere — fades in at left position ─────────────────────────
 function SunSphere({ meshRef, radius, fadeOut }) {
-  const tex          = useTexture('/photos/sun.jpg')
+  const tex          = useTexture(import.meta.env.BASE_URL + 'photos/sun.jpg')
   const matRef       = useRef()
   const startRef     = useRef(null)
   const fadeOutStart = useRef(null)

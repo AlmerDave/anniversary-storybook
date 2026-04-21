@@ -33,7 +33,7 @@ const STORY_SEGMENTS = [
 // ── 3D rotating sun sphere ────────────────────────────────────────────────────
 function SunSphere() {
   const meshRef = useRef()
-  const sunTexture = useTexture('/photos/sun.jpg')
+  const sunTexture = useTexture(import.meta.env.BASE_URL + 'photos/sun.jpg')
 
   useFrame((_, delta) => {
     if (meshRef.current) meshRef.current.rotation.y += delta * 0.3
