@@ -673,7 +673,7 @@ export default function ChapterTwo({ metDate, story }) {
         </motion.p>
 
         {/* Phase caption — bottom, above nav arrows */}
-        <div className="absolute left-0 right-0 flex justify-center" style={{ bottom: '7rem' }}>
+        <div className="absolute left-0 right-0 flex justify-center bottom-36 sm:bottom-28">
           <AnimatePresence mode="wait">
             {PHASE_CAPTIONS[phase] && (
               <PhaseCaptionLine key={phase} segs={PHASE_CAPTIONS[phase]} />
