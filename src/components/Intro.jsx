@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAudio } from '../context/AudioContext'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SHOOTING STARS — Looping diagonal meteors with real physical travel
@@ -90,6 +91,7 @@ export default function Intro({ name, onBegin }) {
   const [showCTA, setShowCTA]         = useState(false)
   const [isBeginning, setIsBeginning] = useState(false)
   const sectionRef                    = useRef(null)
+  const { playSound }                 = useAudio()
 
   // Typewriter for subtitle — starts at 3.2s
   // When skipped, bypass typewriter and show full text immediately
@@ -113,9 +115,10 @@ export default function Intro({ name, onBegin }) {
 
   // Begin handler — triggers gold bloom then hands off to App
   const handleBegin = useCallback(() => {
+    playSound('bloom')
     setIsBeginning(true)
     setTimeout(() => onBegin(), 1100)
-  }, [onBegin])
+  }, [onBegin, playSound])
 
   // Timing shortcuts when skipped
   const T = (normal, fast = 0) => (skipped ? fast : normal)

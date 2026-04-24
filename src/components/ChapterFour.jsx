@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useAudio } from '../context/AudioContext'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Chapter IV — Still Counting
@@ -36,24 +37,38 @@ function lemniscate(t, a) {
   }
 }
 
-function useDancingStars(a = 80) {
+function useDancingStars(a = 70) {
   const [posA, setPosA] = useState({ x: a, y: 0 })
   const [posB, setPosB] = useState({ x: -a, y: 0 })
-  const rafRef  = useRef(null)
-  const mountMs = useRef(Date.now())
+  const [heartVisible, setHeartVisible] = useState(false)
+  const rafRef      = useRef(null)
+  const mountMs     = useRef(Date.now())
+  const heartCooldown = useRef(false)
 
   useEffect(() => {
     const tick = () => {
-      const t = ((Date.now() - mountMs.current) / 1000) * 0.55  // gentle speed
-      setPosA(lemniscate(t, a))
+      const t = ((Date.now() - mountMs.current) / 1000) * 0.55
+      const pA = lemniscate(t, a)
+      setPosA(pA)
       setPosB(lemniscate(t + Math.PI, a))
+
+      // Stars cross through origin twice per cycle — pop a heart
+      if (Math.abs(pA.x) < 8 && !heartCooldown.current) {
+        heartCooldown.current = true
+        setHeartVisible(true)
+        setTimeout(() => {
+          setHeartVisible(false)
+          heartCooldown.current = false
+        }, 1200)
+      }
+
       rafRef.current = requestAnimationFrame(tick)
     }
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
   }, [a])
 
-  return { posA, posB }
+  return { posA, posB, heartVisible }
 }
 
 // ── Count-up animation ────────────────────────────────────────────────────────
@@ -118,15 +133,100 @@ function AuroraWave({ delay, colorIndex, yPercent }) {
   )
 }
 
+// ── Letter highlight definitions ──────────────────────────────────────────────
+const HIGHLIGHTS = [
+  { match: 'choosing me', color: '#C9A84C', glow: true },
+  { match: 'forever',     color: '#F5E6A3', glow: true },
+  { match: 'star',        color: '#C9A84C', glow: true },
+  { match: 'You',         color: '#7B4FBF', glow: true },
+  { match: 'you',         color: '#7B4FBF', glow: true },
+  { match: 'sky',         color: '#3ABFBF', glow: true },
+  { match: 'love',        color: '#FF3355', glow: true },
+]
+
+function parseHighlights(line) {
+  const matches = []
+  for (const h of HIGHLIGHTS) {
+    let idx = 0
+    while (true) {
+      const pos = line.indexOf(h.match, idx)
+      if (pos === -1) break
+      matches.push({ start: pos, end: pos + h.match.length, ...h })
+      idx = pos + h.match.length
+    }
+  }
+  matches.sort((a, b) => a.start - b.start)
+  const segs = []
+  let cursor = 0
+  for (const m of matches) {
+    if (m.start < cursor) continue
+    if (m.start > cursor) segs.push({ text: line.slice(cursor, m.start) })
+    segs.push({ text: m.match, color: m.color, glow: m.glow })
+    cursor = m.end
+  }
+  if (cursor < line.length) segs.push({ text: line.slice(cursor) })
+  return segs
+}
+
+function LetterLine({ line, isFirst }) {
+  const segs = parseHighlights(line)
+  return (
+    <>
+      {segs.map((seg, i) => {
+        if (seg.color) {
+          return (
+            <span key={i} style={{
+              color: seg.color,
+              textShadow: `0 0 10px ${seg.color}CC, 0 0 24px ${seg.color}55`,
+            }}>
+              {seg.text}
+            </span>
+          )
+        }
+        if (isFirst && i === 0) {
+          return (
+            <span key={i}>
+              <span style={{
+                fontSize: '3.2rem',
+                lineHeight: 1,
+                color: '#C9A84C',
+                textShadow: '0 0 18px rgba(201,168,76,0.7), 0 0 36px rgba(201,168,76,0.3)',
+                fontWeight: 700,
+                marginRight: '0.04em',
+                verticalAlign: 'baseline',
+              }}>
+                {seg.text[0]}
+              </span>
+              {seg.text.slice(1)}
+            </span>
+          )
+        }
+        return <span key={i}>{seg.text}</span>
+      })}
+    </>
+  )
+}
+
 export default function ChapterFour({ anniversaryDate, letter, story, name }) {
   const target = getDaysSince(anniversaryDate)
   const count  = useCountUp(target)
-  const { posA, posB } = useDancingStars(75)
+  const { posA, posB, heartVisible } = useDancingStars(70)
+  const [done, setDone]   = useState(false)
+  const { playSound }     = useAudio()
+  const letterPlayedRef   = useRef(new Set())
+
+  useEffect(() => {
+    if (count === target && target > 0) setDone(true)
+  }, [count, target])
+
+  useEffect(() => {
+    if (done) playSound('counter')
+  }, [done]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const lines = letter.split('\n').filter((l) => l.trim())
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden py-16">
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto py-8 md:py-12 lg:py-16">
 
       {/* Aurora background waves */}
       <AuroraWave delay={0}   colorIndex={0} yPercent={8}  />
@@ -155,7 +255,7 @@ export default function ChapterFour({ anniversaryDate, letter, story, name }) {
 
       {/* Chapter label */}
       <motion.p
-        className="font-body text-xs uppercase tracking-[0.35em] text-gold-star/50 mb-8 relative z-10"
+        className="font-body text-xs uppercase tracking-[0.35em] text-warm-glow mb-4 md:mb-6 lg:mb-8 relative z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.5 }}
@@ -165,8 +265,8 @@ export default function ChapterFour({ anniversaryDate, letter, story, name }) {
 
       {/* Dancing stars — lemniscate figure-8 orbit */}
       <div
-        className="relative flex items-center justify-center mb-10 z-10"
-        style={{ width: 240, height: 130 }}
+        className="relative flex items-center justify-center mb-6 md:mb-8 lg:mb-10 z-10"
+        style={{ width: 200, height: 110 }}
       >
         {/* Gold star */}
         <div
@@ -186,10 +286,33 @@ export default function ChapterFour({ anniversaryDate, letter, story, name }) {
             transform: `translate(calc(-50% + ${posB.x}px), calc(-50% + ${posB.y}px))`,
           }}
         />
+        {/* Heart — appears when stars cross at center */}
+        <AnimatePresence>
+          {heartVisible && (
+            <motion.span
+              className="absolute select-none pointer-events-none z-20 text-2xl"
+              style={{
+                left: '50%', top: '50%', marginLeft: '-0.6rem', marginTop: '-0.6rem',
+                color: '#FF3355',
+                textShadow: '0 0 12px #FF335588',
+              }}
+              initial={{ opacity: 0, scale: 0.4 }}
+              animate={{
+                opacity: [0, 1, 1, 0],
+                scale:   [0.4, 1.3, 1.1, 0.9],
+                y:       [0, -18, -30, -52],
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 2.2, ease: 'easeOut', times: [0, 0.15, 0.55, 1] }}
+            >
+              ♥
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Day counter */}
-      <div className="text-center mb-12 space-y-2 relative z-10">
+      <div className="text-center mb-6 md:mb-8 lg:mb-12 space-y-2 relative z-10">
         <motion.p
           className="font-body text-sm uppercase tracking-[0.4em] text-gold-star/60"
           initial={{ opacity: 0 }}
@@ -199,11 +322,14 @@ export default function ChapterFour({ anniversaryDate, letter, story, name }) {
           Days together
         </motion.p>
         <motion.p
-          className="font-heading text-8xl sm:text-9xl text-warm-glow"
+          className="font-heading text-6xl sm:text-7xl md:text-8xl lg:text-9xl text-warm-glow"
           style={{ textShadow: '0 0 40px rgba(245,230,163,0.3)' }}
           initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
+          animate={done
+            ? { opacity: 1, scale: [1, 1.04, 1], textShadow: ['0 0 40px rgba(245,230,163,0.3)', '0 0 80px rgba(201,168,76,0.9)', '0 0 40px rgba(245,230,163,0.3)'] }
+            : { opacity: 1, scale: 1 }
+          }
+          transition={{ duration: done ? 0.8 : 0.8, delay: done ? 0 : 0.6, ease: 'easeOut' }}
         >
           {count.toLocaleString()}
         </motion.p>
@@ -219,7 +345,7 @@ export default function ChapterFour({ anniversaryDate, letter, story, name }) {
 
       {/* Divider */}
       <motion.div
-        className="w-16 h-px bg-gold-star/30 mb-12 relative z-10"
+        className="w-16 h-px bg-gold-star/30 mb-6 md:mb-8 lg:mb-12 relative z-10"
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 1, delay: 0.8 }}
@@ -227,41 +353,47 @@ export default function ChapterFour({ anniversaryDate, letter, story, name }) {
 
       {/* Love letter — lines reveal staggered */}
       <motion.div
-        className="relative z-10 text-center px-6 max-w-lg mx-auto space-y-3"
+        className="relative z-10 text-center px-6 max-w-lg mx-auto space-y-2 md:space-y-3"
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.55, delayChildren: 1.2 } } }}
+        variants={{ visible: { transition: { staggerChildren: 1.4, delayChildren: 1.2 } } }}
       >
         {lines.map((line, i) => (
           <motion.p
             key={i}
             className="text-starlight-white/85 leading-relaxed"
-            style={{ fontFamily: '"Dancing Script", cursive', fontSize: '1.35rem' }}
+            style={{ fontFamily: '"Lora", serif', fontSize: 'clamp(0.95rem, 1.5vw, 1.2rem)', fontStyle: 'italic' }}
             variants={{
-              hidden:  { opacity: 0, y: 14 },
-              visible: { opacity: 1, y: 0, transition: { duration: 1.1, ease: 'easeOut' } },
+              hidden:  { opacity: 0, y: 10, filter: 'blur(6px)' },
+              visible: { opacity: 1, y: 0,  filter: 'blur(0px)', transition: { duration: 1.0, ease: 'easeOut' } },
+            }}
+            onAnimationStart={(def) => {
+              if (def === 'visible' && !letterPlayedRef.current.has(i)) {
+                letterPlayedRef.current.add(i)
+                playSound('letter')
+              }
             }}
           >
-            {line}
+            <LetterLine line={line} isFirst={i === 0} />
           </motion.p>
         ))}
 
         {/* Signed name */}
         <motion.p
           className="pt-4 text-warm-glow"
-          style={{ fontFamily: '"Dancing Script", cursive', fontSize: '1.6rem' }}
+          style={{ fontFamily: '"Lora", serif', fontSize: 'clamp(1.1rem, 1.8vw, 1.4rem)', fontStyle: 'italic', fontWeight: 700 }}
           variants={{
             hidden:  { opacity: 0 },
-            visible: { opacity: 1, transition: { duration: 1.2, delay: lines.length * 0.5 } },
+            visible: { opacity: 1, transition: { duration: 1.2, delay: lines.length * 1.2 } },
           }}
         >
-          — for {name}, always
+          — for {name}, always and forever
         </motion.p>
       </motion.div>
 
       {/* Footer flourish */}
       <motion.div
-        className="mt-16 flex flex-col items-center gap-2 relative z-10"
+        className="mt-8 md:mt-12 lg:mt-16 flex flex-col items-center gap-2 relative z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.2 }}
         transition={{ duration: 2, delay: 1.5 }}

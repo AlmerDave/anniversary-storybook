@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import PlanetModal from './PlanetModal'
 import MilkyWayBackground from './MilkyWayBackground'
+import { useAudio } from '../context/AudioContext'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const KEPLER_E      = 0.30
@@ -176,12 +177,23 @@ export default function ChapterThree({ years, story }) {
   const wasAlreadyBornRef         = useRef(!!sessionStorage.getItem(SESSION_KEY))
 
   const { positions, visible, ringBirths, trailsRef } = usePlanetPositions(years, hoveredIndexRef)
+  const { playSound }                                 = useAudio()
+  const prevRingBirthsRef                             = useRef(ringBirths)
+
+  // Play birth SFX when a planet transitions false → true (new planet ignites)
+  useEffect(() => {
+    ringBirths.forEach((b, i) => {
+      if (b && !prevRingBirthsRef.current[i]) playSound('birth')
+    })
+    prevRingBirthsRef.current = ringBirths
+  }, [ringBirths]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleHover = (i) => { setHover(i); hoveredIndexRef.current = i }
   const handleHoverEnd = () => { setHover(null); hoveredIndexRef.current = null }
 
   const handlePlanetClick = (year, pos, e) => {
     e.stopPropagation()
+    playSound('planet')
     pendingYearRef.current = year
     const originX = ((240 + pos.x) / 480 * 100).toFixed(2) + '%'
     const originY = ((240 + pos.y) / 480 * 100).toFixed(2) + '%'

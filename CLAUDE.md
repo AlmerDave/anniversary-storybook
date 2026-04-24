@@ -14,6 +14,7 @@ A romantic, storybook-style anniversary website inspired by Van Gogh's *Starry N
 | tsParticles | Background star field and particle effects |
 | Tailwind CSS | Responsive utility-first styling |
 | Google Fonts | Cormorant Garamond (headings) + DM Sans (body) + Dancing Script (letter) |
+| Howler.js | Background music + SFX playback (singleton via AudioContext) |
 
 ---
 
@@ -66,12 +67,16 @@ export const config = {
 
 ```
 /anniversary-website
-├── public/photos/          ← drop photo assets here
+├── public/
+│   ├── photos/             ← drop photo assets here (star1.jpg, star2.jpg … matching star id)
+│   └── audio/              ← drop audio assets here (ambient.mp3 + sfx-*.mp3)
 ├── src/
 │   ├── data.js             ← ALL CONTENT HERE — edit this only
 │   ├── main.jsx            ← React entry point (mounts App)
-│   ├── App.jsx             ← chapter state machine + nav buttons + swipe
+│   ├── App.jsx             ← chapter state machine + nav buttons + swipe + AudioProvider
 │   ├── index.css           ← global styles, CSS variables, fonts
+│   ├── context/
+│   │   └── AudioContext.jsx    Howler singleton — ambient music + SFX, mute toggle, useAudio() hook
 │   └── components/
 │       ├── Intro.jsx           Night Awakening — rapid shooting stars, constellation dot nav
 │       ├── ChapterOne.jsx      A Universe Waiting — large sun-star, glow rings, "me" label, typewriter
@@ -80,6 +85,7 @@ export const config = {
 │       ├── ChapterFour.jsx     Still Counting — aurora waves, dancing stars, letter reveal, day counter
 │       ├── PlanetModal.jsx     Memory starfield + StarModal trigger (inside Chapter III Planet View)
 │       ├── StarModal.jsx       Photo + message reveal card (polaroid style)
+│       ├── AudioControls.jsx   Fixed mute/unmute speaker button (bottom-right, gold)
 │       ├── CursorTrail.jsx     Golden brush stroke cursor trail effect
 │       └── ParticleCanvas.jsx  Background star field (always mounted, behind chapters)
 ```
@@ -110,6 +116,8 @@ export const config = {
 - **Chapter II phases** — driven by `usePhaseTimer` using plain `setTimeout` chains. Orbit animation uses a RAF loop (`useOrbit`) that runs only during the `orbit` phase.
 - **Chapter IV dancing stars** — figure-8 lemniscate path computed via Bernoulli parametric equations in a RAF loop (`useDancingStars`). Day counter uses `useCountUp` (ease-out-cubic, ~1.5s).
 - **data.js schema** — `years[]` drives Chapter III planets. Each year has a `stars[]` array for memories. `story.solar` is used in Ch.III; `story.promise` in Ch.IV. There is no `milestones[]` array.
+- **data.js photo paths** — `image` fields use `` `${BASE}photos/starN.jpg` `` where `BASE = import.meta.env.BASE_URL`. Drop files into `public/photos/` named `star1.jpg`, `star2.jpg`, etc. matching the star `id`. This resolves correctly in both dev (`/photos/`) and GitHub Pages (`/anniversary-storybook/photos/`).
+- **Audio system** — `AudioProvider` wraps the entire app in `App.jsx`. Audio is lazy-initialised on first user click (browser autoplay policy). Use `useAudio()` anywhere to call `playSound(name)` or `toggleMute()`. Howler's global `Howler.mute()` silences everything at once. SFX files live in `public/audio/` as `sfx-bloom.mp3`, `sfx-arrival.mp3`, `sfx-collision.mp3`, `sfx-newstars.mp3`, `sfx-planet.mp3`, `sfx-birth.mp3`, `sfx-letter.mp3`, `sfx-counter.mp3`. Missing files log a 404 warning but do not crash.
 
 ---
 

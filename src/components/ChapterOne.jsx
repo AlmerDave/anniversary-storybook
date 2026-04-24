@@ -24,7 +24,7 @@ const STORY_SEGMENTS = [
   [
     { text: 'Just ' },
     { text: 'waiting', color: '#E8B4D8' },
-    { text: ' — without knowing what I was ' },
+    { text: ', without knowing what I was ' },
     { text: 'waiting', color: '#E8B4D8' },
     { text: ' for.' },
   ],

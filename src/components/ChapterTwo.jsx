@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
+import { useAudio } from '../context/AudioContext'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Chapter II — Two Stars Collide
@@ -147,6 +148,53 @@ const MW_FRAG = /* glsl */`
     gl_FragColor = vec4(vColor * 1.5, glow * twinkle * uOpacity);
   }
 `
+
+// ── Phase captions — one line per phase, word-level highlights ───────────────
+const PHASE_CAPTIONS = {
+  continuity: [
+    { text: 'A star burns longest when it has something to ' },
+    { text: 'burn for', color: '#C9A84C', glow: true },
+    { text: '.' },
+  ],
+  arrival: [
+    { text: 'Then, across the dark is ' },
+    { text: 'you', color: '#7B4FBF', glow: true },
+    { text: '.' },
+  ],
+  approach: [
+    { text: 'Gravity has no patience for stars that ' },
+    { text: 'belong together', color: '#F5E6A3', glow: true },
+    { text: '.' },
+  ],
+  collision: [
+    { text: 'Some meetings leave a ' },
+    { text: 'mark', color: '#E8B4D8', glow: true },
+    { text: ' on the sky itself.' },
+  ],
+}
+
+function PhaseCaptionLine({ segs }) {
+  return (
+    <motion.p
+      className="font-body italic text-base sm:text-lg text-starlight-white/80 text-center px-6 max-w-lg leading-relaxed"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ duration: 0.9, ease: 'easeOut', delay: 0.4 }}
+    >
+      {segs.map((seg, i) =>
+        seg.color ? (
+          <span key={i} style={{
+            color: seg.color,
+            textShadow: seg.glow
+              ? `0 0 10px ${seg.color}CC, 0 0 24px ${seg.color}66`
+              : `0 0 8px ${seg.color}88`,
+          }}>{seg.text}</span>
+        ) : <span key={i}>{seg.text}</span>
+      )}
+    </motion.p>
+  )
+}
 
 // ── Phase timer hook ──────────────────────────────────────────────────────────
 function usePhaseTimer() {
@@ -583,6 +631,13 @@ export default function ChapterTwo({ metDate, story }) {
   const violetRadius           = useVioletRadius()
   const spread                 = useStarSpread()
   const { goldRef, violetRef } = useStarPositions(phase, spread)
+  const { playSound }          = useAudio()
+
+  useEffect(() => {
+    if (phase === 'arrival')   playSound('arrival')
+    if (phase === 'collision') playSound('collision')
+    if (phase === 'newstars')  playSound('newstars')
+  }, [phase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <section className="relative w-full h-screen overflow-hidden">
@@ -609,7 +664,7 @@ export default function ChapterTwo({ metDate, story }) {
 
         {/* Chapter label — top center */}
         <motion.p
-          className="absolute top-8 w-full text-center font-body text-xs uppercase tracking-[0.35em] text-gold-star/50"
+          className="absolute top-8 w-full text-center font-body text-xs uppercase tracking-[0.35em] text-warm-glow"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.5 }}
@@ -617,21 +672,14 @@ export default function ChapterTwo({ metDate, story }) {
           Chapter II — Two Stars Collide
         </motion.p>
 
-        {/* metDate — fades in mid-approach */}
-        <AnimatePresence>
-          {phase === 'approach' && (
-            <motion.p
-              className="absolute left-1/2 -translate-x-1/2 font-heading italic text-warm-glow/70 text-base sm:text-lg"
-              style={{ bottom: '10%' }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ delay: 5, duration: 2.5 }}
-            >
-              {metDate}
-            </motion.p>
-          )}
-        </AnimatePresence>
+        {/* Phase caption — bottom, above nav arrows */}
+        <div className="absolute left-0 right-0 flex justify-center" style={{ bottom: '7rem' }}>
+          <AnimatePresence mode="wait">
+            {PHASE_CAPTIONS[phase] && (
+              <PhaseCaptionLine key={phase} segs={PHASE_CAPTIONS[phase]} />
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* White flash — collision moment */}
         <AnimatePresence>

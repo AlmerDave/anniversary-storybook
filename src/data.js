@@ -3,10 +3,14 @@
 // Edit this file to personalise the website. Components never hardcode content.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// BASE_URL is '/anniversary-storybook/' on GitHub Pages, '/' in dev.
+// Drop photos into public/photos/ and reference them as `${BASE}photos/filename.jpg`
+const BASE = import.meta.env.BASE_URL
+
 export const config = {
   // ── Identity ────────────────────────────────────────────────────────────────
   // Her name — shown in the closing chapter
-  name: 'Us (A short anniversary timeline)',
+  name: 'my BB (Jovi)',
 
   // ISO date format (YYYY-MM-DD) — used for the live day counter
   anniversaryDate: '2024-03-27',
@@ -17,7 +21,7 @@ export const config = {
   // ── Chapter narration ───────────────────────────────────────────────────────
   story: {
     before:  'Before there was an us, there was just you — and a universe that had not yet found its reason.',
-    meeting: 'Then everything changed.',
+    meeting: 'After this night, everything changed',
     solar:   'From that collision, an entire world was born.',
     promise: 'And we are only just beginning.',
   },
@@ -34,19 +38,19 @@ export const config = {
         {
           id: 1,
           date: 'March 20, 2024',
-          image: 'https://picsum.photos/seed/star1/400/500',
+          image: `${BASE}photos/star1.jpg`,
           message: 'The first time I knew something was different about us.',
         },
         {
           id: 2,
           date: 'June 14, 2024',
-          image: 'https://picsum.photos/seed/star2/400/500',
+          image: `${BASE}photos/star2.jpg`,
           message: 'Everything felt like a dream we never wanted to wake from.',
         },
         {
           id: 3,
           date: 'September 3, 2024',
-          image: 'https://picsum.photos/seed/star3/400/500',
+          image: `${BASE}photos/star3.jpg`,
           message: 'You laughed and I memorised every note of it.',
         },
       ],
@@ -59,13 +63,13 @@ export const config = {
         {
           id: 4,
           date: 'March 20, 2025',
-          image: 'https://picsum.photos/seed/star4/400/500',
+          image: `${BASE}photos/star4.jpg`,
           message: 'Two years of everything I never knew I needed.',
         },
         {
           id: 5,
           date: 'December 25, 2025',
-          image: 'https://picsum.photos/seed/star5/400/500',
+          image: `${BASE}photos/star5.jpg`,
           message: 'Our Christmas. Still my favourite one.',
         },
       ],
@@ -74,5 +78,5 @@ export const config = {
 
   // ── Closing letter (Chapter IV) ─────────────────────────────────────────────
   // Each line break becomes a separate reveal line.
-  letter: `Every moment with you is a star I want to keep forever.\nYou are the reason the sky looks different now.\nThank you for choosing me, day after day.\nI love you — more than all of this.`,
+  letter: `Every moment with you is a star I want to keep forever.\nYou are the reason why my sky looks different now.\nThank you for choosing me, day after day.\nI love you so much bb.`,
 }

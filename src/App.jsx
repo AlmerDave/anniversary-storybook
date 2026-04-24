@@ -1,7 +1,9 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { config } from './data'
+import { AudioProvider } from './context/AudioContext'
 import ParticleCanvas from './components/ParticleCanvas'
+import AudioControls  from './components/AudioControls'
 import Intro        from './components/Intro'
 import ChapterOne   from './components/ChapterOne'
 import ChapterTwo   from './components/ChapterTwo'
@@ -57,6 +59,7 @@ export default function App() {
   const showNext = currentChapter >= 1 && currentChapter < TOTAL_CHAPTERS
 
   return (
+    <AudioProvider>
     <div
       className="relative w-screen h-screen overflow-hidden bg-deep-canvas"
       onTouchStart={handleTouchStart}
@@ -64,6 +67,7 @@ export default function App() {
     >
       {/* Always-on star field — fixed, pointer-events-none */}
       <ParticleCanvas />
+      <AudioControls />
 
       {/* Active chapter — fills full viewport */}
       <main className="relative z-10 w-full h-full van-gogh-swirl">
@@ -120,5 +124,6 @@ export default function App() {
         </div>
       )}
     </div>
+    </AudioProvider>
   )
 }
