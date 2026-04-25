@@ -48,6 +48,41 @@ export default function PlanetModal({ stars }) {
         animate="visible"
       >
         {positioned.map((star) => (
+          star.isSpecial ? (
+            <motion.button
+              key={star.id}
+              className="absolute rounded-full focus:outline-none"
+              style={{
+                left:      star.left,
+                top:       star.top,
+                transform: 'translate(-50%, -50%)',
+                width:     22,
+                height:    22,
+                background: 'radial-gradient(circle at 38% 35%, #ffffff 0%, #ffffffcc 18%, #F5E6A3 50%, #C9A84C88 78%, transparent 100%)',
+              }}
+              variants={starVariants}
+              animate={{
+                scale:     [1, 1.55, 1],
+                filter:    [
+                  'drop-shadow(0 0 6px #F5E6A3) drop-shadow(0 0 18px #C9A84Caa)',
+                  'drop-shadow(0 0 16px #F5E6A3) drop-shadow(0 0 40px #C9A84Cee) drop-shadow(0 0 60px #C9A84C66)',
+                  'drop-shadow(0 0 6px #F5E6A3) drop-shadow(0 0 18px #C9A84Caa)',
+                ],
+              }}
+              transition={{
+                scale:    { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
+                filter:   { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
+              }}
+              whileHover={{
+                scale:  3.0,
+                filter: 'drop-shadow(0 0 24px #F5E6A3) drop-shadow(0 0 56px #C9A84C) drop-shadow(0 0 80px #C9A84C88)',
+                transition: { duration: 0.2 },
+              }}
+              whileTap={{ scale: 2.0 }}
+              onClick={() => setActiveStar(star)}
+              aria-label="This is us"
+            />
+          ) : (
           <motion.button
             key={star.id}
             className={`absolute ${star.sizeClass} rounded-full bg-warm-glow star-shimmer focus:outline-none`}
@@ -62,6 +97,7 @@ export default function PlanetModal({ stars }) {
             onClick={() => setActiveStar(star)}
             aria-label={`Memory from ${star.date}`}
           />
+          )
         ))}
 
         {/* Shooting stars */}
